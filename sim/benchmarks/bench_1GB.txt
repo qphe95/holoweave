@@ -1,0 +1,4 @@
+Working with: n=1024; db size=2^29 (l=30893, m=30895); logq=32; p=701; sigma=6.400000
+Total packed DB size is ~1075.574445 MB
+signal: killed
+FAIL	github.com/ahenzinger/simplepir/pir	67.141s
