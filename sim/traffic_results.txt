@@ -1,0 +1,54 @@
+=== Part 1: files consistent with j linked queries (min-size files, m = 32) ===
+  20 TB of user data: j = 1 / 2 / 3: 1.09e+04 / 3.03 / 0.000813
+  1 PB of user data: j = 1 / 2 / 3: 1.09e+04 / 0.0606 / 3.25e-07
+  10 PB of user data: j = 1 / 2 / 3: 1.09e+04 / 0.00606 / 3.25e-09
+
+=== Per-domain background rate r (real queries / s per 1 GB domain) ===
+  launch: 20 TB, 50M views/day: 111,759 domains, r = 0.0052/s
+  scale: 1 PB, 5B views/day: 5,587,935 domains, r = 0.0104/s
+
+=== Part 2: selective-refusal advantage (TV) / share of T's queries refused at <=1% collateral ===
+  alpha=0.33, typical r=0.01/s
+    one post                   W=10s/1min/1h/8h: 0.00/0.00  0.00/0.00  0.00/0.00  0.00/0.00
+    profile, 20 posts          W=10s/1min/1h/8h: 0.67/0.51  0.48/0.15  0.08/0.02  0.03/0.01
+    1 MB file (32 pieces)      W=10s/1min/1h/8h: 0.74/0.64  0.56/0.36  0.10/0.02  0.04/0.01
+    10 MB file (320 pieces)    W=10s/1min/1h/8h: 0.91/0.91  0.82/0.81  0.32/0.09  0.12/0.02
+  alpha=0.33, hot r=1/s
+    one post                   W=10s/1min/1h/8h: 0.00/0.00  0.00/0.00  0.00/0.00  0.00/0.00
+    profile, 20 posts          W=10s/1min/1h/8h: 0.15/0.02  0.06/0.01  0.01/0.01  0.00/0.01
+    1 MB file (32 pieces)      W=10s/1min/1h/8h: 0.19/0.03  0.08/0.02  0.01/0.01  0.00/0.01
+    10 MB file (320 pieces)    W=10s/1min/1h/8h: 0.51/0.30  0.25/0.06  0.03/0.01  0.01/0.01
+  alpha=0.33, cold r=1e-4/s
+    one post                   W=10s/1min/1h/8h: 0.00/0.00  0.00/0.00  0.00/0.00  0.00/0.00
+    profile, 20 posts          W=10s/1min/1h/8h: 0.85/0.86  0.83/0.72  0.55/0.31  0.27/0.04
+    1 MB file (32 pieces)      W=10s/1min/1h/8h: 0.90/0.91  0.86/0.82  0.61/0.42  0.34/0.08
+    10 MB file (320 pieces)    W=10s/1min/1h/8h: 0.98/0.98  0.96/0.97  0.85/0.85  0.68/0.60
+  alpha=0.5, typical r=0.01/s
+    one post                   W=10s/1min/1h/8h: 0.00/0.00  0.00/0.00  0.00/0.00  0.00/0.00
+    profile, 20 posts          W=10s/1min/1h/8h: 0.73/0.59  0.54/0.34  0.10/0.02  0.04/0.01
+    1 MB file (32 pieces)      W=10s/1min/1h/8h: 0.78/0.72  0.62/0.44  0.13/0.02  0.05/0.01
+    10 MB file (320 pieces)    W=10s/1min/1h/8h: 0.92/0.93  0.85/0.85  0.37/0.14  0.15/0.03
+  alpha=0.5, hot r=1/s
+    one post                   W=10s/1min/1h/8h: 0.00/0.00  0.00/0.00  0.00/0.00  0.00/0.00
+    profile, 20 posts          W=10s/1min/1h/8h: 0.18/0.03  0.08/0.02  0.01/0.01  0.00/0.01
+    1 MB file (32 pieces)      W=10s/1min/1h/8h: 0.23/0.05  0.10/0.02  0.01/0.01  0.00/0.01
+    10 MB file (320 pieces)    W=10s/1min/1h/8h: 0.57/0.42  0.30/0.08  0.04/0.01  0.01/0.01
+  alpha=0.5, cold r=1e-4/s
+    one post                   W=10s/1min/1h/8h: 0.00/0.00  0.00/0.00  0.00/0.00  0.00/0.00
+    profile, 20 posts          W=10s/1min/1h/8h: 0.89/0.90  0.85/0.81  0.61/0.42  0.32/0.09
+    1 MB file (32 pieces)      W=10s/1min/1h/8h: 0.92/0.88  0.88/0.88  0.67/0.59  0.40/0.14
+    10 MB file (320 pieces)    W=10s/1min/1h/8h: 0.98/0.98  0.97/0.97  0.88/0.88  0.72/0.68
+
+=== Part 3: spread window W needed for advantage <= eps ===
+  alpha=0.33 r=0.01/s profile, 20 posts          eps=0.25/0.1/0.05: 6 min / 39 min / 2.6 h
+  alpha=0.33 r=0.01/s 1 MB file (32 pieces)      eps=0.25/0.1/0.05: 10 min / 65 min / 4.4 h
+  alpha=0.33 r=0.01/s 10 MB file (320 pieces)    eps=0.25/0.1/0.05: 101 min / 11.4 h / 46.3 h
+  alpha=0.33 r=1.0/s profile, 20 posts          eps=0.25/0.1/0.05: 3 s / 24 s / 95 s
+  alpha=0.33 r=1.0/s 1 MB file (32 pieces)      eps=0.25/0.1/0.05: 6 s / 39 s / 3 min
+  alpha=0.33 r=1.0/s 10 MB file (320 pieces)    eps=0.25/0.1/0.05: 61 s / 7 min / 28 min
+  alpha=0.5 r=0.01/s profile, 20 posts          eps=0.25/0.1/0.05: 9 min / 59 min / 4.0 h
+  alpha=0.5 r=0.01/s 1 MB file (32 pieces)      eps=0.25/0.1/0.05: 14 min / 98 min / 6.6 h
+  alpha=0.5 r=0.01/s 10 MB file (320 pieces)    eps=0.25/0.1/0.05: 2.6 h / 17.3 h / 3 d
+  alpha=0.5 r=1.0/s profile, 20 posts          eps=0.25/0.1/0.05: 5 s / 35 s / 2 min
+  alpha=0.5 r=1.0/s 1 MB file (32 pieces)      eps=0.25/0.1/0.05: 9 s / 59 s / 4 min
+  alpha=0.5 r=1.0/s 10 MB file (320 pieces)    eps=0.25/0.1/0.05: 92 s / 10 min / 42 min

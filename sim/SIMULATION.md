@@ -11,8 +11,10 @@ This folder holds a Monte Carlo check of G1 (availability under per-stripe rando
 | `benchmarks/bench_*.txt` | Raw SimplePIR benchmark logs |
 | `churn_sim.py` | Churn-aware G1: placement under churn (Monte Carlo) and the β requirements (analytic) |
 | `churn_results.txt` | Full output of one churn run |
+| `traffic_model.py` | G2 traffic model: anonymity sets and the timing-burst detector (exact, needs numpy and scipy) |
+| `traffic_results.txt` | Full output of the traffic model |
 
-Run with `python3 placement_sim.py` or `python3 -u churn_sim.py` (needs numpy). Each takes a few minutes.
+Run with `python3 placement_sim.py`, `python3 -u churn_sim.py` or `python3 traffic_model.py` (needs numpy; the traffic model also needs scipy). Each takes a few minutes.
 
 ## Update after design changes (Oct 19, 2026)
 
@@ -40,6 +42,30 @@ Adaptive coercion, rerun under the current rules (operators a censor must coerce
 | 10,000 nodes, zipf 1.0 (top 10 hold 30%) | ~265 | ~305 |
 
 Concentrated stake is the weak point: on a 1,000-node network with zipf-distributed stake, about 82 large operators are enough.
+
+## G2 traffic model (Oct 19, 2026)
+
+`traffic_model.py` asks what a coalition can learn about which record a query wants in the best case for the reader: each query arrives separately over an anonymity layer, so a node sees only (node, domain, arrival time). It runs in a few seconds.
+
+**Linking is decisive.** If two queries of one read are linked by any side channel, the target is essentially identified. Expected number of *other* minimum-size files with a piece in each of j linked 1 GB domains:
+
+| User data | j = 1 | j = 2 | j = 3 |
+| --- | --- | --- | --- |
+| 20 TB | 10,900 | 3.0 | 0.0008 |
+| 1 PB | 10,900 | 0.06 | 3 × 10⁻⁷ |
+
+**Timing bursts.** Placement is public, so a read of a known set (a file, a profile) sends a burst to known domains. For a query arriving at one of the target's domains, the coalition counts arrivals at the target's other coalition-held domains in the previous W seconds. Background traffic is Poisson at r per 1 GB domain: about 0.005/s at launch (20 TB, 50 million views/day) and 0.01/s at scale (1 PB, 5 billion views/day). Each cell is the exact advantage of the best threshold test (total variation) / share of the target's coalition queries refusable at ≤ 1% collateral, for α = 50% and r = 0.01/s:
+
+| Read | W = 10 s | 1 min | 1 h | 8 h |
+| --- | --- | --- | --- | --- |
+| One post | 0 | 0 | 0 | 0 |
+| Profile, 20 posts | 0.73 / 59% | 0.54 / 34% | 0.10 / 2% | 0.04 / 1% |
+| 1 MB file | 0.78 / 72% | 0.62 / 44% | 0.13 / 2% | 0.05 / 1% |
+| 10 MB file | 0.92 / 93% | 0.85 / 85% | 0.37 / 14% | 0.15 / 3% |
+
+Spread window needed for advantage ≤ 0.1 at α = 50%: profile 59 min, 1 MB file 98 min, 10 MB file 17 h on typical domains; 35 s, 59 s and 10 min on busy domains (r = 1/s). A Monte Carlo of the raw event streams (200,000 trials) gives 0.6157 against the exact 0.6159 for the 1 MB, 1-minute case.
+
+**Consequences for the design.** The model assumed each query was sent separately over an anonymity layer, and even then file and profile reads were recognizable. Holoweave then dropped the anonymity layer to stay simple, so nodes see who reads. G2 now rests on record privacy (PIR hides which record, in any context) and loudness (a 2-second service deadline, after which every refusal is escalated publicly and served from other holders), neither of which needs unlinkability. See Security games, G2.
 
 ## Churn-aware G1 (Oct 19, 2026)
 

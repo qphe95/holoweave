@@ -2,7 +2,7 @@
 
 Oct 18, 2026 · @qingpinghe
 
-Draft definitions and paper proofs for Holoweave's two core guarantees. G1 (availability) is a probability bound that holds against any coalition behaviour; G2 (non-selectivity) is a reduction to PIR query privacy under an explicit unlinkability assumption. Both are written to be checked by an independent cryptographer.
+Draft definitions and paper proofs for Holoweave's two core guarantees. G1 (availability) is a probability bound that holds against any coalition behaviour; G2 has two parts: record privacy, a reduction to PIR query privacy that holds whatever else a node knows about the reader, and loudness, which needs no network assumption. Both are written to be checked by an independent cryptographer.
 
 ## Model and notation
 
@@ -112,38 +112,51 @@ well above its stake share α. With α = 40%, λ = 0.5 and the planned yearly re
 
 **Model check.** A time-stepped simulation (500 nodes, 1,000 stripes, 3 years, hourly steps, heavy churn: λ = 4, *D* = 30 days, 1% downtime) matched the β model within about 2x at stripe failure rates around 10^-2 under rendezvous placement.
 
-## G2: Non-selectivity
+## G2: Record privacy and loudness
 
-G2 says that for every read (all reads are PIR), a coalition's decision to refuse a query can depend on which node and domain it hits, but not on which record inside the domain is wanted. It covers refusal only; targeted corruption of stored records is handled by G1 (it can't block below the threshold) and G3 (it produces fraud proofs).
+G2 is about refusal: whether a coalition can refuse or slow the reads of one target (a file, a post, an author's profile, or one reader) while serving everything else. Holoweave has no anonymity layer of its own (decided Oct 19, 2026, to keep the system simple), so a node knows who sends each query. G2 has two parts. **G2a, record privacy**: a node never learns which record a query wants, only its domain, whatever else it knows. **G2b, loudness**: whatever a node infers from who is asking and when, every refusal it acts on is public and costly, and the reader still gets the data. Targeted corruption of stored records is handled by G1 and fraud proofs.
 
-**Leakage.** Each private query reveals to the coalition its **leakage** ℓ = (node, domain). We make two assumptions:
+### What a node sees
 
-- **Query privacy of Π (standard).** For any two record indices *r*₀, *r*₁ in the same domain, the distributions of Query(*r*₀) and Query(*r*₁) are computationally indistinguishable; Adv\_priv(Π) is negligible under LWE.
-- **Unlinkability (A\_unlink, protocol assumption).** Fixed-shape reads make every query look like an independent event: the coalition sees each query's ℓ and an arrival time drawn from a public distribution, through a fresh anonymity circuit, plus cover queries. Formally, the joint view of all queries in all reads is simulatable from the multiset of their ℓ values alone. This is the weakest link: it rests on the anonymity layer and traffic shaping, not on cryptography.
+For each query: the sender's address (or a Tor exit, if the reader chooses Tor), the arrival time, the node and domain, and the PIR query. PIR hides the record; everything else is visible. That allows two kinds of selection:
 
-**Game NonSel(𝒜, *b*)**
+- **By reader.** Refuse one person, one address range or one country.
+- **By pattern.** Placement is public, so reading a file, profile or thread hits a known set of domains, and a node or a coalition pooling its logs can see one reader querying them together. Two linked queries are enough to identify a file: two 1 GB domains are consistent with about 3 other minimum-size files at 20 TB of user data and 0.06 at 1 PB.
 
-1. 𝒜 (controlling *C*) picks a node *v* ∈ *C*, a domain of *v*, and two records *r*₀, *r*₁ in it.
-2. The challenger runs honest background traffic, plus one query for *r\_b* to (*v*, domain), shaped as A\_unlink requires.
-3. 𝒜 runs any refusal policy over the queries its nodes receive, and outputs a guess *b*′. It wins if *b*′ = *b*.
+Tor hides the address but not the pattern. A traffic model of a reader on Tor, with each query sent separately, found that timing alone still picks out multi-record reads: with 50% of stake and typical domains (about 0.01 queries/s per 1 GB domain), a 1 MB file read within a minute is recognized with advantage 0.62, and a 20-post profile with 0.54. One isolated post read reveals nothing beyond its domain. Details are in the project's sim/SIMULATION.md.
 
-A policy is ε-**selective** if, for some domain, its refusal probability for queries targeting *r*₀ and *r*₁ differs by more than ε.
+### G2a: Record privacy
 
-**Theorem 2.** Under A\_unlink, for any PPT coalition policy and any two records *r*₀, *r*₁ in the same domain, the refusal probabilities differ by at most Adv\_priv(Π). A read consisting of *k* queries can be singled out with advantage at most *k* · Adv\_priv(Π).
+**Game RecPriv(𝒜, *b*)**
 
-**Proof (reduction).**
+1. 𝒜 (controlling *C*) picks a node *v* ∈ *C*, a domain of *v*, two records *r*₀, *r*₁ in it, and the whole context of one query: who sends it, when, and every other query in the system.
+2. The challenger sends, in that context, a query for *r\_b* to (*v*, domain).
+3. 𝒜 runs any refusal policy and outputs a guess *b*′. It wins if *b*′ = *b*.
 
-1. Suppose a policy *P* refuses queries for *r*₀ with probability δ₀ and for *r*₁ with probability δ₁, with |δ₀ − δ₁| = ε.
-2. Build a distinguisher ℬ against Π's query privacy. ℬ receives a challenge query *Q* for *r\_b*. It simulates the rest of *P*'s view from leakage alone, which A\_unlink permits, embeds *Q* as the query arriving at (*v*, domain), runs *P*, and outputs 1 if *P* refuses *Q*.
-3. ℬ's advantage is exactly ε, so ε ≤ Adv\_priv(Π).
-4. For a read of *k* queries, a hybrid argument switches the target of one query at a time; each step costs at most Adv\_priv(Π), for *k* · Adv\_priv(Π) in total. ∎
+**Theorem 2.** For any PPT coalition policy, any context and any two records *r*₀, *r*₁ in the same domain, the probability of refusing the query differs between *r*₀ and *r*₁ by at most Adv\_priv(Π).
 
-**Corollary (blast radius).** If a policy blocks queries for a file's record in a domain with probability δ, it blocks queries for *every* record in that domain with probability at least δ − Adv\_priv(Π). Combined with G1: to block a file, a coalition must refuse, with near-certainty, whole domains on at least 65 holders of a stripe for each of *m*/2 + 1 pieces. Every refused domain takes all its other records with it: at least 1 GB per domain on CPU nodes, 64 GB or more on GPU servers. Blocking one 1 MB file this way refuses about 1 TB of unrelated data; a 2 MB file, about 2 TB.
+**Proof (reduction).** Suppose a policy *P* refuses with probabilities δ₀ and δ₁, |δ₀ − δ₁| = ε. A distinguisher ℬ against Π's query privacy receives a challenge query *Q* for *r\_b*, builds the context 𝒜 chose (it does not depend on *b*), embeds *Q*, runs *P* and outputs 1 if *P* refuses *Q*. Its advantage is ε, so ε ≤ Adv\_priv(Π). ∎
+
+So a refusal can depend on who asks, when, and what else they asked, but not on the query itself beyond its domain.
+
+**Corollary (blast radius).** A policy that ignores who is asking and refuses queries for one record with probability δ refuses queries for every record in that domain with probability at least δ − Adv\_priv(Π): at least 1 GB of other data per domain on CPU nodes, 64 GB or more on GPU servers. Blocking a file for everyone this way means refusing whole domains on at least 65 holders of a stripe for each of *m*/2 + 1 pieces: about 1 TB of unrelated data for a 1 MB file, 2 TB for a 2 MB file.
+
+### G2b: Loudness
+
+**Service deadline.** An answer arriving more than τ (default 2 s) after the node's published latency counts as a refusal.
+
+**Theorem 3 (no quiet refusal).** For any coalition policy, including ones that select by reader or by pattern, every refusal and every answer later than τ (i) is escalated to a public challenge naming the record, (ii) is followed by the reader fetching the block from the stripe's other holders, which succeeds whenever G1 holds, and (iii) ends with the node either answering on-chain, at a fixed penalty plus that epoch's escrow for the domain, or being ejected and slashed. A coalition that never refuses and never answers later than τ slows a read by at most τ per block.
+
+**Argument.** The deadline is enforced by the client, not the node, and escalation and fallback are automatic. Challenges and ejection are fixed on-chain rules (design doc, Audits, refusal and accountability), and G1 bounds when the fallback fails. No network assumption is used.
+
+**What the two parts give together.** A node can single out a reader or a file read. It can then slow that read by up to τ per block without leaving evidence, or refuse it, which costs a public, per-query price and still doesn't stop the reader getting the data. Below G1's threshold it cannot make anything unavailable, and the public refusal log turns sustained selective refusal into evidence against named nodes.
 
 **Limits**
 
-- Every read is a PIR read (there is no plain fast path), so G2 covers all reads on all devices, and audit queries are indistinguishable from real ones by construction.
-- If A\_unlink fails, for example through traffic analysis that links a read's queries across nodes, a coalition could recognize the *pattern* of a particular file's read and refuse only matching queries. The bound then degrades to how well the pattern identifies the file. This is why fixed-shape reads and cover traffic are part of the protocol, not optional.
+- **Reader privacy from nodes is limited.** Nodes learn who reads and which domains, and a coalition pooling logs can often infer which files and profiles a reader views. PIR still hides which post a reader viewed in isolation.
+- **Escalations go through a relayer.** A challenge names the record and is posted on-chain by the audit fund's relayer, so the chain doesn't learn who escalated; the refusing node already knows.
+- **Fallback reads leak more.** Fetching a block from the other holders of its stripe narrows the target to that stripe. Covered by G1 (enough honest holders answer) and G2b.
+- **Audits.** If auditors' addresses are recognizable, a node can tell audits from real reads. That doesn't help it skip storing data (the audit still targets an unknown record in the domain); refusing real readers instead is caught by G2b.
 
 ## Simulation results
 
@@ -181,7 +194,7 @@ The simulation is approximate: correlated-outage runs used one random draw per s
 - [ ] **Beacon model.** Bound ε\_beacon for the chosen threshold beacon or VDF, including bias by withholding.
 - [ ] **Churn-aware G1.** Done: Theorem 1′ and its requirements are in G1 under churn. Remaining: a formal treatment of correlated outages whose timing the coalition can influence.
 - [ ] **Adaptive corruption.** Define a corruption-cost model over time and bound the cost of destroying one file, including yearly reshuffles.
-- [ ] **A\_unlink.** Make the traffic model concrete (arrival distributions, cover-query rate, circuit reuse) and bound what an observer of all coalition nodes can link.
+- [x] **A\_unlink.** Done Oct 19, 2026. The traffic model showed unlinkability fails for file and profile reads even over an anonymity layer, and Holoweave dropped the anonymity layer to stay simple. G2 no longer assumes unlinkability: record privacy (G2a) holds in any context, and loudness (G2b) covers selection by reader or pattern.
 - [ ] **PIR instantiation.** Fix the scheme and parameters, and cite its query-privacy reduction to LWE with concrete security.
 - [ ] **Mixing randomizers.** Moot: mixing was dropped on Oct 19.
 - [ ] **Independent review.** Have a cryptographer check both games, the reductions and the numbers.

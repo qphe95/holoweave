@@ -26,7 +26,7 @@ Holoweave is a decentralized store built against **shadowbanning and narrative c
 
 - **Stopping total bans.** A censor willing to block the whole network, or every bucket a node holds, can do so. Holoweave makes that loud and expensive, not impossible.
 - **Proving that bytes were physically destroyed.** This is impossible without trusted hardware; Holoweave proves *expiry of obligation*, not deletion.
-- **Hiding who is reading from a network observer.** That belongs to an anonymity layer (mixnet or Tor) underneath.
+- **Hiding who is reading from a network observer.** Out of scope. Nodes see who queries them; readers who need to hide their address can use Tor, which hides the address but not the pattern of a read.
 - **Permanent storage.** Terms are fixed; renewal is a new payment.
 
 Formal definitions and proofs for G1 and G2 are in Security games, and a comparison with existing systems is in Comparison. Background math (the dropped sealing construction, coded PIR and doubly-efficient PIR) is in Research notes; the security review whose fixes are folded in is in Review log.
@@ -49,7 +49,7 @@ The censor wants one specific file X to quietly become unavailable or hard to re
 - Standard hardness: LWE (PIR) and collision-resistant hashing. No pairing assumptions or trusted setup.
 - A base chain with honest-majority consensus, and a DA layer for forced inclusion, fraud proofs and challenges.
 - An unbiasable threshold beacon (or VDF) for placement and audit assignment.
-- Clients use an anonymity layer for uploads and private reads.
+- Clients may use Tor for uploads and reads; nothing in Holoweave requires it.
 - Stake reflects real control (collateral makes it costly), and holders outside the coalition actually store and serve their symbols (audits).
 
 ## Architecture overview
@@ -61,7 +61,7 @@ flowchart LR
   C[Client: encrypt, pad, outer code] --> I[Blind ingest + DA forced inclusion]
   I --> P[Per-slot rendezvous placement, one block per piece]
   P --> S[(Storage nodes: answer only PIR queries, 1 GB+ domains)]
-  S --> R[Readers: PIR on every read, phones too, no gateways]
+  S --> R[Readers: PIR on every read; 2 s deadline, then fallback + public escalation]
   A[Auditors and challenges: eject + slash on missed deadline] -.-> S
   B[(Base chain: payments, roots, challenges)] -.-> I
   B -.-> P
@@ -110,7 +110,7 @@ A file is spread so thinly and randomly that making it unreadable needs about 60
 Nobody along the upload path can tell which file is which, and the forced-inclusion path carries the data itself, so a missing upload can always be proven against the right party.
 
 1. **Pay blindly.** The uploader buys storage credits in advance as blinded tokens. On-chain fees go through a shielded pool or a relayer, and refunds go to a blinded token, so no account links to the upload.
-2. **Submit anonymously.** Over the anonymity layer, send the encrypted, padded blocks to any ingest node and redeem credits.
+2. **Submit anonymously.** Optionally over Tor, send the encrypted, padded blocks to any ingest node and redeem credits.
 3. **Build the batch.** Several builders each propose a list for the epoch. Each list is checked by data availability sampling on its own; the batch is the union of the lists that pass. A builder that lists withheld data only loses its own list.
 4. **Force inclusion with data.** If a submission is still missing after *T* = 3 epochs, the uploader posts the blocks themselves to a data-availability (DA) blob. Only blob-posted data can be forced; builders who could see it on DA and still left it out are slashed. An uploader can no longer frame builders by posting a hash and withholding the data.
 5. **Receipt.** The uploader receives Merkle paths proving inclusion. The address is (group, batch, block positions, *K*). Publish it only after this step.
@@ -126,8 +126,8 @@ If a submission is dropped, the client re-encrypts under a new key and resubmits
 **Reading a post or a file**
 
 1. From the address, the client works out which stored blocks it needs. For a small item, that is the one systematic piece holding it*, stored as a single block*. For a whole file, it is about *m*/2 pieces plus spares.
-2. For each block, the client sends a PIR query to the block's holder, over the anonymity layer, against the domain that contains the block. Queries go out in fixed-shape batches with cover queries (below).
-3. If a holder doesn't answer, the client queries other holders of the same stripe (any 32 of 96 rebuild a block) and escalates the non-answer to a public challenge.
+2. For each block, the client sends a PIR query to the block's holder, against the domain that contains the block.
+3. If a holder doesn't answer within τ (default 2 s past its published latency), the client queries other holders of the same stripe (any 32 of 96 rebuild a block) and escalates the non-answer to a public challenge.
 4. The client checks each answer against the batch's Merkle root and decrypts with *K*.
 
 **Domains and node roles.** PIR work per query grows with the domain size, so a node's read capacity is roughly its scan throughput divided by its domain size. Each node publishes its domain sizes, subject to a protocol minimum.
@@ -139,16 +139,22 @@ If a submission is dropped, the client re-encrypts under a new key and resubmits
 
 Private-read servers mirror recent and popular ciphertext, verify it against the Merkle roots, and earn read fees. Because every read is PIR, they are where most social-feed traffic should land.
 
-**What a read costs** (YPIR, measured on one CPU core): one 32 KB record from a 1 GB domain takes about 0.46 core-seconds of server time, about 0.37 MB of upload (plus 473 KB of keys, reusable within a session) and about 120 KB of download. Viewing one post is one record. A 50-post feed is about 19 MB of upload, workable on Wi-Fi but heavy on cellular, so:
+**What a read costs** (YPIR, measured on one CPU core): one 32 KB record from a 1 GB domain takes about 0.46 core-seconds of server time, about 0.37 MB of upload (plus 473 KB of keys, sent once per node per session) and about 120 KB of download. Viewing one post is one record. A 50-post feed is about 19 MB of upload, workable on Wi-Fi but heavy on cellular, so:
 
 - **Compressed queries for phones.** Lattice PIR schemes that expand a compact query on the server (the Spiral family) cut uploads to tens of KB, at the price of lower server throughput. [InsPIRe (2025)](https://iacr.org/news/item/26277) claims up to 50% smaller queries and 25% higher throughput than YPIR with no client hint. The phone scheme is chosen by benchmark; nodes can serve two schemes over the same domains.
-- **On-device caching and prefetch.** A device never re-queries a block it already holds, and prefetches likely reads in fixed-shape batches when idle or on Wi-Fi. Keys for a node are reused only within one session, so reuse can't link a reader's queries across sessions.
+- **On-device caching and prefetch.** A device never re-queries a block it already holds, and prefetches likely reads in fixed-shape batches when idle or on Wi-Fi. Keys for a node are reused within a session.
 
 **Capacity follows reads, not storage.** Nodes can't cache by content, so network compute is views × domain size ÷ scan rate, plus a fixed packing cost per record. At 5 billion post views a day on CPUs and 1 GB domains, that is about 26,000 cores (about 1,300 storage nodes' worth of 32-core CPUs, each also busy with storage). GPU private-read servers can carry much of it. Readers pay per query at marginal cost, about $1.30 per million post views on CPUs, so capacity grows with fees.
 
 **Scheme.** YPIR (no client hint) for desktops, compressed-query PIR for phones, both checked against Merkle paths. SimplePIR is ruled out by its client hint of about 100 MB per node and domain.
 
-**Fixed-shape reads.** Every read sends the same number of queries, padded with dummies, spread over several batch passes and separate anonymity circuits, plus cover queries to random nodes. Nodes can't recognize a file read from timing or from which nodes are contacted.
+**What a node sees, and the service deadline.** Holoweave has no anonymity layer of its own (decided Oct 19, 2026, to keep it simple). A node sees who sends each query (an address, or a Tor exit if the reader chooses Tor), when, and which domain it targets; PIR hides only which record. So a node can single out a reader, or recognize a reader fetching a file or profile from the pattern of domains it queries. What it cannot do is refuse quietly:
+
+- **Service deadline τ** (default 2 s past published latency). A later answer counts as a refusal.
+- **Every refusal is escalated** to a public challenge naming the record, and the client fetches the block from the stripe's other holders in the meantime.
+- **The node pays or leaves:** it answers on-chain at a penalty, or it is ejected and slashed.
+
+A node that singles out readers or files can therefore slow them by at most τ per block without leaving evidence; anything more is on the public refusal log (Security games, G2).
 
 **Discovery.** Holoweave can't stop a search engine from dropping a link, but anyone holding an address can fetch and verify the content. An optional append-only index of announced addresses, stored in Holoweave itself, gives one discovery channel that can't be quietly edited.
 
@@ -288,7 +294,7 @@ The two core guarantees are mathematical, not economic: they hold whatever the c
 
 Below about 57% of the whole network, no file can be removed; around two-thirds, a coalition could black out most of the network anyway. Assumptions: holders outside the coalition actually store and serve (audits), stake reflects control (collateral), and the beacon is unbiased. Under churn the same bound holds with the coalition share replaced by β, the share of slots not served by an available honest holder (the coalition's slots plus honest slots that are offline or awaiting rebuild); keep β below about 57% (60% with 2 MB minimum files). Normal churn with a 7-day rebuild adds almost nothing. Large correlated outages and seizures are the real risk: a 50% coalition plus a 20% outage gives about 2 × 10^-10 per file and a 30% outage about 4%, and seized data cannot be rebuilt if the coalition withholds its share (see Security games, G1 under churn).
 
-**G2. Non-selectivity (from PIR).** Within a PIR domain, a node's view of a query is computationally independent of which record it targets (LWE). So any refusal policy hits every record in the domain equally: refusing one file means refusing the whole domain the node has declared (at least 1 GB on CPU nodes, 64 GB or more on GPU servers). The blast radius of a refusal can never exceed the PIR work done per read, so domain size is the lever. Assumption: fixed-shape reads close timing and contact-pattern side channels.
+**G2. Record privacy and loudness (from PIR and challenges).** *G2a:* a node's view of a query is computationally independent of which record in the domain it targets (LWE), whatever else the node knows about the reader. So a refusal that doesn't use who is asking hits every record in the domain equally, at least 1 GB on CPU nodes and 64 GB or more on GPU servers. *G2b:* nodes do see who is asking and can recognize file or profile reads from their pattern, but every refusal or answer later than τ is escalated publicly, the reader fetches the block from other holders, and the node pays on-chain or is ejected. A node can quietly slow a read by at most τ per block; anything more is public. G2b needs no network assumption.
 
 **G3. Accountability.** Every wrong answer yields a valid fraud proof, every non-answer can be forced into an on-chain challenge, and malformed queries can't frame an honest node.
 
@@ -324,6 +330,7 @@ Below about 57% of the whole network, no file can be removed; around two-thirds,
 - The largest private-read blast radius depends on optional GPU servers; if few operators run them, that tier concentrates in few hands.
 - PIR throughput in production may fall short of benchmark estimates.
 - DA and base-chain throughput and cost for forced inclusion and challenges.
+- **Accepted vulnerability: operator independence (Sybil).** Holoweave cannot tell whether many identities belong to one organisation, and does not try. G1's guarantees count stake, not independent operators. If real stake is concentrated, coercing a few large operators may be enough: about 82 on a 1,000-node network where the top 10 hold 39% of stake. Per-identity caps or sublinear rewards do not help, because a large operator can split into many identities. This is left open by decision (Oct 19, 2026).
 - Discovery (search engines, link sharing) stays outside Holoweave's control. Mandatory PIR makes compute grow with views, about 0.46 core-seconds per post view at 1 GB domains on CPU, and about 0.4 MB of upload per view on phones until a compressed-query scheme is in place. GPU private-read servers and a compressed-query scheme are the levers.
 
 **Prior art.** Each layer exists somewhere; the combination aimed at silent, selective censorship does not, as far as searches turned up.
