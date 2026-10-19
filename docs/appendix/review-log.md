@@ -4,7 +4,7 @@ Oct 18, 2026
 
 An independent adversarial review of the design found two critical and four high-severity problems. The biggest: refusing to serve costs a node nothing, so the anti-censorship guarantee does not yet hold. All have concrete fixes, several of which simplify the design.
 
-**Status (Oct 18, 2026):** F1 to F6 and F8 to F11 are folded into the consolidated design (costly challenges, DA-carrying forced inclusion, per-stripe random placement with immediate repair and reshuffles, fixed-shape reads, well-formed-query fraud proofs, commit-reveal audits, shielded fees, capacity pricing, hash-only commitments). F7 (sealing margin) is moot: sealing was dropped for v1. The claims corrected below no longer appear in the design.
+**Status (Oct 18, 2026):** F1 to F6 and F8 to F11 are folded into the consolidated design (costly challenges, DA-carrying forced inclusion, per-stripe random placement with immediate repair and reshuffles, fixed-shape reads, well-formed-query fraud proofs, commit-reveal audits, shielded fees, capacity pricing, hash-only commitments). F7 (sealing margin) is moot: sealing was dropped for v1. The claims corrected below no longer appear in the design. **F12 (Critical, found Oct 19, 2026 by churn simulation): the repair ratchet.** Giving each freed slot a fresh random holder let a coalition that never leaves grow its slot share to α(λ + r)/(λα + r), about 62% for a 40% coalition with honest exits at 0.5 per year and yearly reshuffles of a third. Fixed by stake-weighted rendezvous-hashing placement, which keeps slot share equal to stake share at all times (Security games, G1 under churn).
 
 ## Findings
 
@@ -39,7 +39,7 @@ None needs new cryptography except P5. Most adapt known constructions to Holowea
 
 **Decisions**
 
-- [ ] **Keep entanglement, or switch to a systematic code?** The reviewer points out that bystander damage is a cost to strangers, not to the censor, so it doesn't deter. A systematic code plus a client-side outer code and independent holder sets would cut reads from about 36x to about 1x. Entanglement was an original goal, so this is a design choice, not a bug fix.
+- [ ] **Keep entanglement, or switch to a systematic code?** The reviewer points out that bystander damage is a cost to strangers, not to the censor, so it doesn't deter. A systematic code plus a client-side outer code and independent holder sets would cut reads from about 36x to about 1x. Entanglement was an original goal, so this is a design choice, not a bug fix. Resolved Oct 19, 2026: mixing dropped, systematic code kept; mandatory PIR on every read now provides the non-selectivity entanglement was meant to give.
 - [ ] **Fraud proofs:** reveal-the-secret with on-chain well-formedness checks, or verifiable PIR (P4)?
 - [ ] **Sealing scope:** keep it with an ASIC-based margin, or treat capture of more than about 1/3 of a batch as out of scope and drop it?
 - [ ] **Holder re-randomization period** (yearly suggested), and the repair trigger if P2 is not adopted (8 to 12 missing suggested).

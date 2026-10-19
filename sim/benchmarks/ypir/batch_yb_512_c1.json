@@ -1,0 +1,31 @@
+{
+  "offline": {
+    "uploadBytes": 0,
+    "downloadBytes": 0,
+    "serverTimeMs": 6507,
+    "clientTimeMs": 0,
+    "simplepirPrepTimeMs": 5739,
+    "simplepirHintBytes": 0,
+    "doublepirHintBytes": 0
+  },
+  "online": {
+    "uploadBytes": 2308096,
+    "downloadBytes": 12288,
+    "simplepirQueryBytes": 0,
+    "doublepirQueryBytes": 0,
+    "simplepirRespBytes": 0,
+    "doublepirRespBytes": 0,
+    "serverTimeMs": 121,
+    "clientQueryGenTimeMs": 72,
+    "clientDecodeTimeMs": 0,
+    "firstPassTimeMs": 87,
+    "secondPassTimeMs": 0,
+    "ringPackingTimeMs": 31,
+    "sqrtNBytes": 0,
+    "allServerTimesMs": [
+      120,
+      121
+    ],
+    "stdDevServerTimeMs": 0.5
+  }
+}

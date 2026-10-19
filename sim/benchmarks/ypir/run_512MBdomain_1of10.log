@@ -1,0 +1,177 @@
+Running in verbose mode.
+Running YPIR (w/ SimplePIR) on a database of 469762048 bits, and performing cross-client batching over 1 clients. 
+The server performance measurement will be averaged over 5 trials.
+[2026-10-19T13:57:03Z DEBUG ypir::params] db_rows: 16384, db_cols: 1
+[2026-10-19T13:57:03Z DEBUG ypir::params] chose nu_1: 3
+[2026-10-19T13:57:03Z DEBUG ypir::scheme] Created server in 168912 us
+[2026-10-19T13:57:03Z DEBUG ypir::scheme] Database of 58720256 bytes
+[2026-10-19T13:57:03Z DEBUG ypir::server] transpose in 24553 us
+[2026-10-19T13:57:03Z DEBUG ypir::client] using gadget base 524288
+[2026-10-19T13:57:04Z DEBUG ypir::server] Precomp in 625541 us
+[2026-10-19T13:57:04Z DEBUG ypir::scheme] trial: 0
+[2026-10-19T13:57:04Z DEBUG ypir::scheme] Target item: 23684613 (11564, 1541)
+[2026-10-19T13:57:04Z DEBUG ypir::client] using gadget base 524288
+[2026-10-19T13:57:04Z DEBUG ypir::scheme] pub params size: 473088 bytes
+[2026-10-19T13:57:04Z DEBUG ypir::scheme] Generated query in 39368 us
+[2026-10-19T13:57:04Z DEBUG ypir::scheme] Query size: 587776 bytes
+[2026-10-19T13:57:04Z DEBUG ypir::server] Performing mul...
+[2026-10-19T13:57:04Z DEBUG ypir::server] Done w mul...
+[2026-10-19T13:57:04Z DEBUG ypir::server] Packed...
+[2026-10-19T13:57:04Z DEBUG ypir::scheme] rescaling response...
+[2026-10-19T13:57:04Z DEBUG ypir::scheme] decrypting outer cts...
+[2026-10-19T13:57:04Z DEBUG ypir::client] log2(measured noise): 76.54176015650995
+[2026-10-19T13:57:04Z DEBUG ypir::scheme] trial: 1
+[2026-10-19T13:57:04Z DEBUG ypir::scheme] Target item: 6064945 (2961, 817)
+[2026-10-19T13:57:04Z DEBUG ypir::client] using gadget base 524288
+[2026-10-19T13:57:04Z DEBUG ypir::scheme] pub params size: 473088 bytes
+[2026-10-19T13:57:04Z DEBUG ypir::scheme] Generated query in 38032 us
+[2026-10-19T13:57:04Z DEBUG ypir::scheme] Query size: 587776 bytes
+[2026-10-19T13:57:04Z DEBUG ypir::server] Performing mul...
+[2026-10-19T13:57:04Z DEBUG ypir::server] Done w mul...
+[2026-10-19T13:57:04Z DEBUG ypir::server] Packed...
+[2026-10-19T13:57:04Z DEBUG ypir::scheme] rescaling response...
+[2026-10-19T13:57:04Z DEBUG ypir::scheme] decrypting outer cts...
+[2026-10-19T13:57:04Z DEBUG ypir::client] log2(measured noise): 76.49031905797005
+[2026-10-19T13:57:04Z DEBUG ypir::scheme] trial: 2
+[2026-10-19T13:57:04Z DEBUG ypir::scheme] Target item: 19110325 (9331, 437)
+[2026-10-19T13:57:04Z DEBUG ypir::client] using gadget base 524288
+[2026-10-19T13:57:04Z DEBUG ypir::scheme] pub params size: 473088 bytes
+[2026-10-19T13:57:04Z DEBUG ypir::scheme] Generated query in 38131 us
+[2026-10-19T13:57:04Z DEBUG ypir::scheme] Query size: 587776 bytes
+[2026-10-19T13:57:04Z DEBUG ypir::server] Performing mul...
+[2026-10-19T13:57:04Z DEBUG ypir::server] Done w mul...
+[2026-10-19T13:57:04Z DEBUG ypir::server] Packed...
+[2026-10-19T13:57:04Z DEBUG ypir::scheme] rescaling response...
+[2026-10-19T13:57:04Z DEBUG ypir::scheme] decrypting outer cts...
+[2026-10-19T13:57:04Z DEBUG ypir::client] log2(measured noise): 77.04175531859451
+[2026-10-19T13:57:04Z DEBUG ypir::scheme] trial: 3
+[2026-10-19T13:57:04Z DEBUG ypir::scheme] Target item: 12056923 (5887, 347)
+[2026-10-19T13:57:04Z DEBUG ypir::client] using gadget base 524288
+[2026-10-19T13:57:04Z DEBUG ypir::scheme] pub params size: 473088 bytes
+[2026-10-19T13:57:04Z DEBUG ypir::scheme] Generated query in 37996 us
+[2026-10-19T13:57:04Z DEBUG ypir::scheme] Query size: 587776 bytes
+[2026-10-19T13:57:04Z DEBUG ypir::server] Performing mul...
+[2026-10-19T13:57:04Z DEBUG ypir::server] Done w mul...
+[2026-10-19T13:57:04Z DEBUG ypir::server] Packed...
+[2026-10-19T13:57:04Z DEBUG ypir::scheme] rescaling response...
+[2026-10-19T13:57:04Z DEBUG ypir::scheme] decrypting outer cts...
+[2026-10-19T13:57:04Z DEBUG ypir::client] log2(measured noise): 76.75980003590628
+[2026-10-19T13:57:04Z DEBUG ypir::scheme] trial: 4
+[2026-10-19T13:57:04Z DEBUG ypir::scheme] Target item: 5675319 (2771, 311)
+[2026-10-19T13:57:04Z DEBUG ypir::client] using gadget base 524288
+[2026-10-19T13:57:04Z DEBUG ypir::scheme] pub params size: 473088 bytes
+[2026-10-19T13:57:04Z DEBUG ypir::scheme] Generated query in 39000 us
+[2026-10-19T13:57:04Z DEBUG ypir::scheme] Query size: 587776 bytes
+[2026-10-19T13:57:04Z DEBUG ypir::server] Performing mul...
+[2026-10-19T13:57:04Z DEBUG ypir::server] Done w mul...
+[2026-10-19T13:57:05Z DEBUG ypir::server] Packed...
+[2026-10-19T13:57:05Z DEBUG ypir::scheme] rescaling response...
+[2026-10-19T13:57:05Z DEBUG ypir::scheme] decrypting outer cts...
+[2026-10-19T13:57:05Z DEBUG ypir::client] log2(measured noise): 76.92906450048639
+[2026-10-19T13:57:05Z DEBUG ypir::scheme] trial: 5
+[2026-10-19T13:57:05Z DEBUG ypir::scheme] Target item: 11444788 (5588, 564)
+[2026-10-19T13:57:05Z DEBUG ypir::client] using gadget base 524288
+[2026-10-19T13:57:05Z DEBUG ypir::scheme] pub params size: 473088 bytes
+[2026-10-19T13:57:05Z DEBUG ypir::scheme] Generated query in 38439 us
+[2026-10-19T13:57:05Z DEBUG ypir::scheme] Query size: 587776 bytes
+[2026-10-19T13:57:05Z DEBUG ypir::server] Performing mul...
+[2026-10-19T13:57:05Z DEBUG ypir::server] Done w mul...
+[2026-10-19T13:57:05Z DEBUG ypir::server] Packed...
+[2026-10-19T13:57:05Z DEBUG ypir::scheme] rescaling response...
+[2026-10-19T13:57:05Z DEBUG ypir::scheme] decrypting outer cts...
+[2026-10-19T13:57:05Z DEBUG ypir::client] log2(measured noise): 75.33349272258884
+[2026-10-19T13:57:05Z DEBUG ypir::scheme] Measurement {
+        offline: Offline {
+            upload_bytes: 0,
+            download_bytes: 0,
+            server_time_ms: 1062,
+            client_time_ms: 0,
+            simplepir_prep_time_ms: 435,
+            simplepir_hint_bytes: 0,
+            doublepir_hint_bytes: 0,
+        },
+        online: Online {
+            upload_bytes: 587776,
+            download_bytes: 12288,
+            simplepir_query_bytes: 0,
+            doublepir_query_bytes: 0,
+            simplepir_resp_bytes: 0,
+            doublepir_resp_bytes: 0,
+            server_time_ms: 37,
+            client_query_gen_time_ms: 38,
+            client_decode_time_ms: 0,
+            first_pass_time_ms: 6,
+            second_pass_time_ms: 0,
+            ring_packing_time_ms: 31,
+            sqrt_n_bytes: 0,
+            all_server_times_ms: [
+                38,
+                37,
+                37,
+                37,
+                38,
+            ],
+            std_dev_server_time_ms: 0.4898979485566356,
+        },
+    }
+Measurement completed. See the README for details on what the following fields mean.
+Result:
+{
+  "offline": {
+    "uploadBytes": 0,
+    "downloadBytes": 0,
+    "serverTimeMs": 1062,
+    "clientTimeMs": 0,
+    "simplepirPrepTimeMs": 435,
+    "simplepirHintBytes": 0,
+    "doublepirHintBytes": 0
+  },
+  "online": {
+    "uploadBytes": 587776,
+    "downloadBytes": 12288,
+    "simplepirQueryBytes": 0,
+    "doublepirQueryBytes": 0,
+    "simplepirRespBytes": 0,
+    "doublepirRespBytes": 0,
+    "serverTimeMs": 37,
+    "clientQueryGenTimeMs": 38,
+    "clientDecodeTimeMs": 0,
+    "firstPassTimeMs": 6,
+    "secondPassTimeMs": 0,
+    "ringPackingTimeMs": 31,
+    "sqrtNBytes": 0,
+    "allServerTimesMs": [
+      38,
+      37,
+      37,
+      37,
+      38
+    ],
+    "stdDevServerTimeMs": 0.4898979485566356
+  }
+}
+Writing report to /sessions/rcw-01amglegwxmeea5qhj12vkzr/ypir_512MBdomain_1of10.json
+Report written.
+	Command being timed: "/sessions/rcw-01amglegwxmeea5qhj12vkzr/ypir/target/release/run 16384 28672 1 5 /sessions/rcw-01amglegwxmeea5qhj12vkzr/ypir_512MBdomain_1of10.json -i -v"
+	User time (seconds): 1.50
+	System time (seconds): 0.50
+	Percent of CPU this job got: 99%
+	Elapsed (wall clock) time (h:mm:ss or m:ss): 0:02.01
+	Average shared text size (kbytes): 0
+	Average unshared data size (kbytes): 0
+	Average stack size (kbytes): 0
+	Average total size (kbytes): 0
+	Maximum resident set size (kbytes): 848652
+	Average resident set size (kbytes): 0
+	Major (requiring I/O) page faults: 0
+	Minor (reclaiming a frame) page faults: 277407
+	Voluntary context switches: 1
+	Involuntary context switches: 4
+	Swaps: 0
+	File system inputs: 0
+	File system outputs: 32
+	Socket messages sent: 0
+	Socket messages received: 0
+	Signals delivered: 0
+	Page size (bytes): 4096
+	Exit status: 0

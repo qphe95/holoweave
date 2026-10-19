@@ -1,0 +1,61 @@
+Running YPIR (w/ SimplePIR) on a database of 4294950912 bits, and performing cross-client batching over 1 clients. 
+The server performance measurement will be averaged over 3 trials.
+Measurement completed. See the README for details on what the following fields mean.
+Result:
+{
+  "offline": {
+    "uploadBytes": 0,
+    "downloadBytes": 0,
+    "serverTimeMs": 6060,
+    "clientTimeMs": 0,
+    "simplepirPrepTimeMs": 5426,
+    "simplepirHintBytes": 0,
+    "doublepirHintBytes": 0
+  },
+  "online": {
+    "uploadBytes": 2308096,
+    "downloadBytes": 12288,
+    "simplepirQueryBytes": 0,
+    "doublepirQueryBytes": 0,
+    "simplepirRespBytes": 0,
+    "doublepirRespBytes": 0,
+    "serverTimeMs": 116,
+    "clientQueryGenTimeMs": 66,
+    "clientDecodeTimeMs": 0,
+    "firstPassTimeMs": 84,
+    "secondPassTimeMs": 0,
+    "ringPackingTimeMs": 30,
+    "sqrtNBytes": 0,
+    "allServerTimesMs": [
+      116,
+      117,
+      116
+    ],
+    "stdDevServerTimeMs": 0.4714045207910317
+  }
+}
+Writing report to /sessions/rcw-01amglegwxmeea5qhj12vkzr/ypir_512MB.json
+Report written.
+	Command being timed: "/sessions/rcw-01amglegwxmeea5qhj12vkzr/ypir/target/release/run 149796 28672 1 3 /sessions/rcw-01amglegwxmeea5qhj12vkzr/ypir_512MB.json -i"
+	User time (seconds): 8.83
+	System time (seconds): 0.94
+	Percent of CPU this job got: 99%
+	Elapsed (wall clock) time (h:mm:ss or m:ss): 0:09.78
+	Average shared text size (kbytes): 0
+	Average unshared data size (kbytes): 0
+	Average stack size (kbytes): 0
+	Average total size (kbytes): 0
+	Maximum resident set size (kbytes): 1835560
+	Average resident set size (kbytes): 0
+	Major (requiring I/O) page faults: 21
+	Minor (reclaiming a frame) page faults: 513139
+	Voluntary context switches: 28
+	Involuntary context switches: 33
+	Swaps: 0
+	File system inputs: 5912
+	File system outputs: 24
+	Socket messages sent: 0
+	Socket messages received: 0
+	Signals delivered: 0
+	Page size (bytes): 4096
+	Exit status: 0

@@ -1,0 +1,5 @@
+Running YPIR (w/ DoublePIR) on a database of 2147483648 bits, and performing cross-client batching over 12 clients. 
+The server performance measurement will be averaged over 2 trials.
+thread 'main' panicked at src/matmul.rs:64:13:
+b_cols must be 1, 2, 4, or 8
+note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
