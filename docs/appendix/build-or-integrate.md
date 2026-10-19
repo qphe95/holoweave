@@ -1,5 +1,7 @@
 # Build or integrate
 
+> **Historical record.** This file records past work and is not the current design; where it disagrees with [../design.md](../design.md), the design wins. A summary of what changed and why is in [history.md](history.md).
+
 Oct 18, 2026
 
 **Decision (Oct 18, 2026): build Holoweave's own network.** Integrating would leave too many guarantees weakened: non-selectivity only on separate mirror servers, refusals logged but never penalized, and dependence on Sui, WAL pricing and Walrus's stake concentration. Building keeps node-level PIR, enforced challenges and Holoweave's own terms. The analysis below is kept as the record of that choice. Ideas worth borrowing from Walrus: its epoch-change protocol for moving shards, and its aggregator and cache model for the fast path. Encoding each blob across all shards was considered and rejected: it gives an exact two-thirds threshold, but the shard count caps the number of operators, while per-stripe random placement scales to any network size.

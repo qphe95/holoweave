@@ -1,0 +1,26 @@
+beta_max (largest beta keeping one pack below the target):
+  1e-09: 0.666
+  1e-18: 0.663
+  1e-30: 0.660
+
+Longest rebuild delay D (days) keeping one pack below 1e-18, 1% downtime:
+  alpha   lam=0.1/yr   lam=0.5/yr   lam=2/yr   lam=0.5/yr + 10% outage
+  0.33       3,535          707          177          563
+  0.40       2,785          557          139          428
+  0.50       1,712          342           86          235
+
+Temporary outage of phi of honest stake (lam=0.5/yr, D=1 day, 1% downtime): pack loss
+  alpha   phi=0.05   phi=0.1    phi=0.2    phi=0.3    phi=0.4  
+  0.00    0.0e+00    0.0e+00    0.0e+00    0.0e+00    0.0e+00
+  0.20    0.0e+00    0.0e+00    0.0e+00    0.0e+00    0.0e+00
+  0.33    0.0e+00    0.0e+00    0.0e+00    0.0e+00    0.0e+00
+  0.40    0.0e+00    0.0e+00    0.0e+00    0.0e+00   2.3e-180
+  0.50    0.0e+00    0.0e+00    0.0e+00    2.8e-75    1.0e+00
+
+Permanent seizure of phi of ALL stake, coalition withholds (beta = alpha + phi): pack loss
+  alpha   phi=0.1    phi=0.2    phi=0.3    phi=0.4  
+  0.00    0.0e+00    0.0e+00    0.0e+00    0.0e+00
+  0.20    0.0e+00    0.0e+00    0.0e+00    0.0e+00
+  0.33    0.0e+00    0.0e+00    0.0e+00    1.0e+00
+  0.40    0.0e+00    0.0e+00    1.0e+00    1.0e+00
+  0.50    0.0e+00    1.0e+00    1.0e+00    1.0e+00

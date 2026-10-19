@@ -1,5 +1,7 @@
 # Review log
 
+> **Historical record.** This file records past work and is not the current design; where it disagrees with [../design.md](../design.md), the design wins. A summary of what changed and why is in [history.md](history.md).
+
 Oct 18, 2026
 
 An independent adversarial review of the design found two critical and four high-severity problems. The biggest: refusing to serve costs a node nothing, so the anti-censorship guarantee does not yet hold. All have concrete fixes, several of which simplify the design.

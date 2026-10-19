@@ -1,5 +1,7 @@
 # Research notes
 
+> **Historical record.** This file records past work and is not the current design; where it disagrees with [../design.md](../design.md), the design wins. A summary of what changed and why is in [history.md](history.md).
+
 These notes record the math behind decisions in the design. They are background, not the design itself.
 
 | Topic | Status | Where it matters |
