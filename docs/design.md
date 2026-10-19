@@ -314,7 +314,7 @@ Each layer exists somewhere; the combination aimed at silent, selective censorsh
 | [Walrus](https://docs.wal.app/glossary.html) | Prepaid fixed-term storage in epochs, erasure coding, self-healing |
 | Storj | Erasure-coded segments on independent random nodes |
 | Tahoe-LAFS, Freenet | Client-side encryption, capability addresses, operators blind to content |
-| [PIR-DSN (arXiv, 2025)](https://arxiv.org/abs/2512.07189v1) | PIR on a decentralized storage network, for reader privacy |
+| [PIR-DSN (arXiv, 2025)](https://arxiv.org/abs/2512.07189v1) | PIR on a decentralized storage network, for reader privacy; full replication within small miner groups (see Comparison) |
 | [VeriSimplePIR (USENIX Security 2024)](https://www.usenix.org/conference/usenixsecurity24/presentation/de-castro) | Verifiable PIR; considered instead of answer fraud proofs |
 | Celestia, Ethereum danksharding | Data availability sampling, bad-encoding fraud proofs |
 | Clay codes | Minimum-storage regenerating codes for cheap repair |
