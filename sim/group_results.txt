@@ -1,0 +1,36 @@
+  p_stripe = 1/2 at alpha = 0.671
+
+Chance a chosen unit can be killed, by coalition stake:
+  unit                              0.55      0.60      0.62      0.64      0.65      0.66      0.67      0.68      0.70
+  per-file code, m = 32          4.8e-28   1.1e-11   4.4e-07   9.6e-04   1.5e-02   1.1e-01   3.8e-01   7.4e-01   1.0e+00
+  per-file code, m = 64          1.6e-52   8.6e-21   5.3e-12   1.1e-05   1.6e-03   5.2e-02   3.8e-01   8.5e-01   1.0e+00
+  64 MB group                    0.0e+00   0.0e+00   0.0e+00  1.1e-236  3.7e-112   2.1e-33   8.4e-02   1.0e+00   1.0e+00
+  1 GB group                     0.0e+00   0.0e+00   0.0e+00   0.0e+00   0.0e+00   0.0e+00   2.5e-08   1.0e+00   1.0e+00
+
+Largest stake keeping one chosen unit below 1e-18 / 1e-9 / 1/2:
+  per-file code, m = 32        0.576 / 0.608 / 0.673
+  per-file code, m = 64        0.604 / 0.626 / 0.672
+  64 MB group                  0.663 / 0.666 / 0.671
+  1 GB group                   0.669 / 0.670 / 0.671
+
+Stripes the coalition must kill (at least) to kill the target, and the stored data those stripes hold:
+  per-file code, m = 32            17 stripes =      0.0 GB of stored symbols
+  per-file code, m = 64            33 stripes =      0.1 GB of stored symbols
+  64 MB group                    2049 stripes =      6.0 GB of stored symbols
+  1 GB group                    32769 stripes =     96.0 GB of stored symbols
+
+Reader cost to rebuild a 1 MB target from its group under attack (YPIR, 1 GB domains):
+  64 MB group                  2048 PIR queries, 0.26 core-hours, 0.74 GB upload, 0.24 GB download
+  1 GB group                   32768 PIR queries, 4.19 core-hours, 11.84 GB upload, 3.84 GB download
+
+Outages and seizures with 64 MB groups (K = 2048) vs per-file m = 32 (K = 16):
+  alpha=0.33, outage 10% of honest stake: beta=0.403  per-file 1.3e-115  group 0.0e+00
+  alpha=0.33, outage 20% of honest stake: beta=0.469  per-file 2.2e-68  group 0.0e+00
+  alpha=0.33, outage 30% of honest stake: beta=0.536  per-file 6.0e-34  group 0.0e+00
+  alpha=0.5, outage 10% of honest stake: beta=0.554  per-file 2.7e-26  group 0.0e+00
+  alpha=0.5, outage 20% of honest stake: beta=0.604  per-file 1.2e-10  group 0.0e+00
+  alpha=0.5, outage 30% of honest stake: beta=0.653  per-file 3.2e-02  group 2.7e-79
+  alpha=0.33, seizure of 20% of all stake: per-file 1.9e-36  group 0.0e+00
+  alpha=0.33, seizure of 30% of all stake: per-file 2.9e-05  group 0.0e+00
+  alpha=0.4, seizure of 20% of all stake: per-file 1.1e-11  group 0.0e+00
+  alpha=0.4, seizure of 30% of all stake: per-file 1.0e+00  group 1.0e+00

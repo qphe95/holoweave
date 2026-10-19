@@ -2,7 +2,7 @@
 
 Oct 18, 2026 · @qingpinghe
 
-Draft definitions and paper proofs for Holoweave's two core guarantees. G1 (availability) is a probability bound that holds against any coalition behaviour; G2 has two parts: record privacy, a reduction to PIR query privacy that holds whatever else a node knows about the reader, and loudness, which needs no network assumption. Both are written to be checked by an independent cryptographer.
+Draft definitions and paper proofs for Holoweave's two core guarantees, updated Oct 19, 2026 for 64 MB packs, the independent review (R1 to R14 in the Review log), and signed answers with answer fraud proofs (Theorem 4). G1 (availability) is a probability bound that holds against any coalition behaviour; G2 has two parts: record privacy, a reduction to PIR query privacy that holds whatever else a node knows about the reader, and routing around refusals, which needs no network assumption. Both are written to be checked by an independent cryptographer.
 
 ## Model and notation
 
@@ -20,9 +20,11 @@ Draft definitions and paper proofs for Holoweave's two core guarantees. G1 (avai
 
 **Placement.** Each slot *j* of stripe *s* has a seed σ\_{s,j} from the beacon, drawn after the batch is final. Its holder is chosen by **stake-weighted rendezvous hashing** over the *current* node set: holder(*s*, *j*) = argmin over nodes *v* of *E\_v* / stake\_*v*, where *E\_v* = −ln *H*(σ\_{s,j}, id\_*v*) is a unit exponential. Node identities are fixed by the beacon after the node registers its key, so nobody can grind an identity that ranks first on chosen stripes. Two properties follow. First, a slot lands on a node with probability exactly proportional to its stake, and slots with different seeds are independent, so a node may hold several slots of one stripe (drawing with replacement) and the count of coalition slots in a stripe is Bin(*n*, α). Second, the holder depends only on who is in the network *now*, not on its history, so the coalition's share of slots equals its share of stake at every moment. Two earlier rules were rejected after simulation: drawing distinct nodes per stripe lets many small identities out-slot large honest operators, and giving each freed slot a fresh random holder lets a coalition that never leaves accumulate slots over time (the repair ratchet, see G1 under churn).
 
-**Files.** A file *F* is outer-coded into *m* pieces, and each piece is stored as one block in its own stripe (mixing was dropped on Oct 19, so *d* = 0). We assume a file's *m* stripes are distinct; placement enforces this, and a collision only shrinks the set of stripes an adversary can attack, so it never helps it. The formulas keep *d* general so the earlier mixed design (*d* = 2, each piece needing 3 blocks in 3 stripes) can be compared.
+**Packs.** Since Oct 19 the outer code runs over **packs** of many files rather than over each file: a pack has *K* = 2,048 data pieces (64 MB) plus 2,048 parity pieces, any *m*/2 of its *m* = 4,096 pieces rebuild it, and data pieces are stored as-is. Each piece is one block in its own stripe (mixing was dropped, so *d* = 0), and a pack's *m* stripes are distinct. A chosen file is lost only if its pack is lost, so the games below take the pack as the unit; they keep *m* and *d* general so the earlier per-file code (*m* = 32) and mixed design (*d* = 2) can be compared.
 
-**Honest behaviour.** A node outside *C* stores its symbols and returns them correctly when asked. This is the assumption audits exist to maintain; it is outside both games.
+**Identity randomness.** Each identity's ranking key uses a beacon value revealed only after its stake is locked, and stake is fixed per identity. Without this, a coalition could register many identities, learn how each ranks on already-published seeds and then move stake into the best ones, which breaks the assumption below that *C* is fixed before the placement randomness it benefits from.
+
+**Honest behaviour.** A node outside *C* stores its symbols and returns them correctly when asked. This is the assumption daily storage proofs exist to maintain; it is outside both games.
 
 **Adversary.** *C* is chosen before the placement randomness is revealed (static corruption). After that, *C* sees everything public: addresses, placements, Merkle roots, every message sent to its members. It may make its members refuse, delay, delete or corrupt anything. Adaptive corruption after placement is treated separately in G1's limits.
 
@@ -31,9 +33,9 @@ Draft definitions and paper proofs for Holoweave's two core guarantees. G1 (avai
 **Game Avail(𝒜, α, F)**
 
 1. 𝒜 chooses a coalition *C* with stake share at most α.
-2. An honest client uploads *F*; the beacon samples placement for every stripe.
+2. An honest client uploads *F*; it is coded into a pack, and the beacon samples placement for every stripe.
 3. 𝒜 learns all public data and controls every node in *C* arbitrarily.
-4. An honest reader runs the full read procedure: it contacts every holder of every stripe of *F*, verifies each symbol against its Merkle root, decodes the stripes it can, XORs blocks into pieces, and decodes *F* from any *m*/2 valid pieces.
+4. An honest reader runs the full read procedure: it contacts every holder of every stripe of the pack, verifies each symbol against its Merkle root, decodes the stripes it can, and decodes the pack (and so *F*) from any *m*/2 valid pieces.
 5. 𝒜 wins if the reader fails to output *F*.
 
 **Theorem 1.** Let *p* = Pr\[Bin(*n*, α) ≥ *t*\] and *q* = 1 − (1 − *p*)^(*d*+1). For every adversary, even computationally unbounded in its strategy,
@@ -51,23 +53,24 @@ where ε\_hash bounds Merkle-path forgery (collision resistance) and ε\_beacon 
 3. *Each piece fails with probability at most q, independently.* Piece *i* fails only if one of its *d* + 1 distinct stripes fails. Distinct stripes have independent placements (random-oracle beacon), so failures are independent across stripes and therefore across pieces.
 4. *The file fails only if at least m/2 + 1 pieces fail*, because the outer code decodes from any *m*/2. The number of failed pieces is dominated by Bin(*m*, *q*). ∎
 
-**Numbers** (*n* = 96, *w* = 32, *t* = 65, *d* + 1 = 1, so *q* = *p*). With the earlier mixing (*d* + 1 = 3), a 60% coalition reached 4.9 × 10^-5 for *m* = 32; dropping it makes every file harder to kill.
+**Numbers** (*n* = 96, *w* = 32, *t* = 65, *d* + 1 = 1, so *q* = *p*). The pack column (*m* = 4,096) is the current design; the per-file columns are the earlier design, kept for comparison.
 
-| Coalition stake α | Stripe fails, *p* | Piece fails, *q* | File fails, *m* = 32 | File fails, *m* = 64 |
+| Coalition stake α | Stripe fails, *p* | File fails, per-file *m* = 32 | Per-file *m* = 64 | **64 MB pack, *m* = 4,096** |
 | --- | --- | --- | --- | --- |
-| 33% | 3.9 × 10^-12 | 3.9 × 10^-12 | about 10^-186 | below 10^-300 |
-| 50% | 3.4 × 10^-4 | 3.4 × 10^-4 | 5.3 × 10^-51 | 4.7 × 10^-97 |
-| 55% | 7.6 × 10^-3 | 7.6 × 10^-3 | 4.8 × 10^-28 | 1.6 × 10^-52 |
-| 60% | 7.4 × 10^-2 | 7.4 × 10^-2 | 1.1 × 10^-11 | 8.6 × 10^-21 |
-| 65% | 3.3 × 10^-1 | 3.3 × 10^-1 | 1.5 × 10^-2 | 1.6 × 10^-3 |
+| 33% | 3.9 × 10^-12 | about 10^-186 | below 10^-300 | effectively zero |
+| 50% | 3.4 × 10^-4 | 5.3 × 10^-51 | 4.7 × 10^-97 | effectively zero |
+| 60% | 7.4 × 10^-2 | 1.1 × 10^-11 | 8.6 × 10^-21 | effectively zero |
+| 64% | 0.26 | 9.6 × 10^-4 | 1.1 × 10^-5 | 1.1 × 10^-236 |
+| 66% | 0.40 | 0.11 | 5.2 × 10^-2 | 2.1 × 10^-33 |
+| 67% | 0.49 | 0.38 | 0.38 | 8.4 × 10^-2 |
 
-A union bound over all files multiplies these by the number of files; at 50% stake, even 10^12 files leave the network-wide failure probability below 10^-30.
+A stripe fails with probability 1/2 at α ≈ 67.1%, where a coalition can black out most of the network; packs move the point at which one chosen file can be killed (below 10^-18) from 57.6% to 66.3%, almost to that line. Killing a pack needs at least 2,049 failed stripes at once. A union bound over all files multiplies the per-file figures by the number of packs.
 
 **What G1 does not cover**
 
-- **Churn.** Theorem 1 assumes every slot is held and served. Departures, rebuild delay, downtime and outages are covered by Theorem 1′ in G1 under churn below.
-- **Adaptive corruption.** A censor who corrupts specific holders after placement is not bounded by α. Destroying *F* then needs at least *t* = 65 corrupted holders in at least one stripe of each of *m*/2 + 1 pieces. Simulation under the current rules puts the cheapest such set at about 455 operators in a 1,000-node network and about 1,640 in a 10,000-node network with even stake (2,600 with 2 MB minimum files), falling to about 265 at 10,000 nodes when the top 10 operators hold 30% of stake. Yearly reshuffles bound how long such leverage lasts. Formalizing this needs a model of corruption cost over time.
-- **Targeted corruption.** Below the threshold, corrupting a file's symbols cannot make it unreadable (step 1); it only produces verification failures, which G3 turns into fraud proofs.
+- **Churn.** Theorem 1 assumes every slot is held and served. Departures, rebuild delay, downtime, outages and nodes that store but don't serve are covered by Theorem 1′ in G1 under churn below.
+- **Adaptive corruption and DoS.** A censor who corrupts, coerces or knocks offline specific holders after placement is not bounded by α. Destroying *F* then needs more than *m*/2 failed stripes of its pack, each with at most 31 honest holders answering. With packs that means making more than 2,048 stripes fail at once; at a 50% coalition it takes knocking out about a third of all honest stake, a network-wide outage. Formalizing this needs a model of corruption and DoS cost over time.
+- **Targeted deletion or corruption.** Once *F*'s address is public, a holder knows which of its symbols belong to *F* and can delete or corrupt just those, with no collateral damage. Below the threshold this cannot make *F* unreadable (step 1: Merkle verification rejects corrupted symbols and any 32 valid ones decode); it is routed around (G2b), and every wrong answer it causes is provable and slashed (Theorem 4).
 
 ## G1 under churn
 
@@ -99,22 +102,25 @@ well above its stake share α. With α = 40%, λ = 0.5 and the planned yearly re
 
 **Requirements.** Only β matters, and one file stays below 10^-18 failure while β ≤ β\_max:
 
-| Minimum pieces per file *m* | β\_max at 10^-9 | β\_max at 10^-18 | β\_max at 10^-30 |
+| Unit | β\_max at 10^-9 | β\_max at 10^-18 | β\_max at 10^-30 |
 | --- | --- | --- | --- |
-| 32 (1 MB) | 0.608 | 0.576 | 0.543 |
-| 64 (2 MB) | 0.626 | 0.604 | 0.582 |
-| 128 (4 MB) | 0.639 | 0.624 | 0.609 |
+| Per-file, *m* = 32 (old) | 0.608 | 0.576 | 0.543 |
+| Per-file, *m* = 64 (old) | 0.626 | 0.604 | 0.582 |
+| Per-file, *m* = 128 (old) | 0.639 | 0.624 | 0.609 |
+| **64 MB pack, *m* = 4,096** | **0.666** | **0.663** | **0.660** |
 
 1. **Rebuild speed is not the binding constraint.** With 1% downtime, the longest rebuild delay that keeps a file below 10^-18 is about 120 days at α = 50% and λ = 0.5 per year (37 days if a 10% outage is also under way), 31 days even at λ = 2, and over a year for a 33% coalition. A protocol target of rebuilding within 7 days, most-degraded stripes first, leaves a wide margin.
 2. **Correlated outages are.** With α = 50%, a simultaneous outage of 10% of honest stake gives about 5 × 10^-26 per file, 20% gives about 2 × 10^-10, and 30% about 4%: a temporary window in which the coalition could block a given file. At α = 33%, a 30% outage stays near 10^-33 and a 40% outage near 5 × 10^-11.
 3. **Seizure is permanent, and repair cannot undo it.** If a fraction φ of all stake is destroyed at once, a stripe left with fewer than 32 honest holders of its data is lost as soon as the coalition withholds its symbols. Losing 20% of stake is about 2 × 10^-36 per file with α = 33% and 10^-11 with α = 40%; losing 30% with α = 33% is about 3 × 10^-5. Rebuilding after a 20% loss takes about 0.7 days at 1 Gbit/s of repair bandwidth per node and 7 days at 100 Mbit/s; that bounds exposure to further losses, not the initial one.
 4. **Bigger minimum files are a free margin.** Raising the minimum from 32 to 64 pieces (2 MB bundles) moves β\_max from 0.576 to 0.604 at no storage cost. A 32-of-128 inner code would reach about 0.68, at 8x storage instead of 6x.
 
+**With packs.** The items above use the old per-file code. With 64 MB packs, β can reach about 0.66: a 50% coalition plus a simultaneous outage of 30% of honest stake gives about 2.7 × 10^-79 per pack (3.2% per file before), and a 40% coalition plus permanent seizure of 20% of all stake is effectively zero (10^-11 before). Rebuild speed matters even less. Packs do not change the fact that seized data cannot be rebuilt if the coalition withholds its share; they make it take far more seizure.
+
 **Model check.** A time-stepped simulation (500 nodes, 1,000 stripes, 3 years, hourly steps, heavy churn: λ = 4, *D* = 30 days, 1% downtime) matched the β model within about 2x at stripe failure rates around 10^-2 under rendezvous placement.
 
-## G2: Record privacy and loudness
+## G2: Record privacy and routing around refusals
 
-G2 is about refusal: whether a coalition can refuse or slow the reads of one target (a file, a post, an author's profile, or one reader) while serving everything else. Holoweave has no anonymity layer of its own (decided Oct 19, 2026, to keep the system simple), so a node knows who sends each query. G2 has two parts. **G2a, record privacy**: a node never learns which record a query wants, only its domain, whatever else it knows. **G2b, loudness**: whatever a node infers from who is asking and when, every refusal it acts on is public and costly, and the reader still gets the data. Targeted corruption of stored records is handled by G1 and fraud proofs.
+G2 is about refusal: whether a coalition can refuse or slow the reads of one target (a file, a post, an author's profile, or one reader) while serving everything else. Holoweave has no anonymity layer of its own (decided Oct 19, 2026, to keep the system simple), so a node knows who sends each query. G2 has two parts. **G2a, record privacy**: a node never learns which record a query wants, only its domain, whatever else it knows. **G2b, routing around refusals**: whatever a node infers from who is asking and when, a refusal never stops the read below G1's threshold, and the node isn't paid for it. Targeted deletion or corruption of stored records is handled by G1 (it can't make a file unavailable) and Theorem 4 (every wrong answer it causes is provable).
 
 ### What a node sees
 
@@ -139,24 +145,45 @@ Tor hides the address but not the pattern. A traffic model of a reader on Tor, w
 
 So a refusal can depend on who asks, when, and what else they asked, but not on the query itself beyond its domain.
 
-**Corollary (blast radius).** A policy that ignores who is asking and refuses queries for one record with probability δ refuses queries for every record in that domain with probability at least δ − Adv\_priv(Π): at least 1 GB of other data per domain on CPU nodes, 64 GB or more on GPU servers. Blocking a file for everyone this way means refusing whole domains on at least 65 holders of a stripe for each of *m*/2 + 1 pieces: about 1 TB of unrelated data for a 1 MB file, 2 TB for a 2 MB file.
+**Corollary (blast radius of query-based refusal).** A policy that ignores who is asking and refuses queries for one record with probability δ refuses queries for every record in that domain with probability at least δ − Adv\_priv(Π): at least 1 GB of other data per domain on CPU nodes, 64 GB or more on GPU servers, provided domains follow the public layout rule (a node cannot choose what shares a domain with the target). This bounds refusals decided from the query. Deletion or corruption of a known symbol needs no query at all, so the corollary does not cover it; Theorem 4 does (every resulting wrong answer is provable), and G1 bounds its effect on availability.
 
-### G2b: Loudness
+### G2b: Routing around refusals
 
-**Service deadline.** An answer arriving more than τ (default 2 s) after the node's published latency counts as a refusal.
+There are no challenges or public refusal logs (decided Oct 19, 2026); refusals are unpunished, while wrong answers are provable (Theorem 4). A reader treats a refusal, a late answer or an answer that fails the Merkle check the same way: it doesn't pay for that query and fetches the block another way.
 
-**Theorem 3 (no quiet refusal).** For any coalition policy, including ones that select by reader or by pattern, every refusal and every answer later than τ (i) is escalated to a public challenge naming the record, (ii) is followed by the reader fetching the block from the stripe's other holders, which succeeds whenever G1 holds, and (iii) ends with the node either answering on-chain, at a fixed penalty plus that epoch's escrow for the domain, or being ejected and slashed. A coalition that never refuses and never answers later than τ slows a read by at most τ per block.
+**Theorem 3 (refusal is never fatal).** Fix any coalition policy, including ones that select by reader or by pattern, and let a slot count as unavailable to a reader if its holder refuses that reader. Under Theorem 1′ with β counting those slots:
 
-**Argument.** The deadline is enforced by the client, not the node, and escalation and fallback are automatic. Challenges and ejection are fixed on-chain rules (design doc, Audits, refusal and accountability), and G1 bounds when the fallback fails. No network assumption is used.
+1. A **read of any piece** completes whenever at least *w* = 32 of its stripe's 96 holders answer correctly: a refused, deleted or corrupted piece costs about 32 queries instead of 1, sent in parallel. Readers remember refusing nodes and skip the wait next time.
+2. If the piece's stripe itself has failed, the read completes whenever its pack still has *m*/2 decodable pieces, at a cost of about 2,048 queries (0.7 GB of upload) for that file.
+3. The refusing node is paid nothing for refused or wrong answers.
 
-**What the two parts give together.** A node can single out a reader or a file read. It can then slow that read by up to τ per block without leaving evidence, or refuse it, which costs a public, per-query price and still doesn't stop the reader getting the data. Below G1's threshold it cannot make anything unavailable, and the public refusal log turns sustained selective refusal into evidence against named nodes.
+**Argument.** Items 1 and 2 are the decoding properties of the outer code and the Clay code; whether enough pieces or symbols are served is exactly the event Theorem 1′ bounds. Item 3 holds because payment is per verified answer. No network assumption is used.
+
+**What the two parts give together.** A node can single out a reader or a file read and refuse it. Below G1's threshold this never stops the read: it costs the reader about 32 queries per refused piece, and it costs the node the read fee. Refusals are private between node and reader and are not punished, but they achieve nothing below the threshold.
+
+### Theorem 4: no unpunished selective deletion
+
+Added Oct 19, 2026, when signed answers and answer fraud proofs were restored.
+
+**Setup.** A client derives each query from a fresh random seed: *q* = Query(seed, *i*). A node returns its answer *a* with a signature σ on (domain, *H*(*q*), *a*). An **answer fraud proof** is (domain, *H*(*q*), *a*, σ, seed, *i*, *D*\[*i*\], Merkle path). It is valid if Query(seed, *i*) hashes to the signed value, *D*\[*i*\] verifies against the committed root, and Decode(seed, *a*) ≠ *D*\[*i*\]. Let δ be the PIR scheme's decoding-error probability for an honest answer to a well-formed query.
+
+**Theorem 4.**
+
+1. *No framing.* Against an honest node, a reader who tries *Q* seeds produces a valid answer fraud proof with probability at most *Q*·δ + ε\_sig + ε\_hash.
+2. *Selective harm is provable.* Fix any node strategy and two records *r*, *r*′ in one domain. Let ρ(*r*) be the probability that a fresh query for *r* is refused (no answer, a late answer, or an unsigned one), and ω(*r*) the probability that it gets a signed answer that decodes wrongly. If readers of *r* are served badly more often than readers of *r*′ by a gap *g*, meaning (ρ(*r*) + ω(*r*)) − (ρ(*r*′) + ω(*r*′)) = *g*, then ω(*r*) ≥ *g* − Adv\_priv(Π), and every such wrong answer gives its reader a valid answer fraud proof.
+
+**Proof.** (1) An honest node returns Answer(*D*, *q*) for the well-formed query rebuilt from the seed; it decodes correctly except with probability δ over the seed's randomness, and each seed the reader tries is a fresh sample, so *Q* tries succeed with probability at most *Q*·δ. Any other route to a valid proof forges σ or finds a hash collision. (2) By Theorem 2, |ρ(*r*) − ρ(*r*′)| ≤ Adv\_priv(Π), so ω(*r*) − ω(*r*′) ≥ *g* − Adv\_priv(Π), and ω(*r*′) ≥ 0. A signed answer that decodes wrongly to a query rebuilt from its seed is, by definition, a valid proof. ∎
+
+**What it means.** If a node deletes or corrupts file *X*'s record, every signed answer to a query for *X* is wrong, so each of *X*'s readers can prove it. The node can't keep those answers away from *X*'s readers, because it can't tell their queries apart (Theorem 2). To avoid proofs it must refuse instead, and a refusal decided from the query has to cover every record of the domain about equally. Its options are: keep the record, refuse the whole domain (losing its read fees, while readers route around it), or be slashed the first time a reader of *X* files a proof. The statement is mathematical. How much slashing deters is economic: it is bounded by the bond.
+
+**Limits.** Someone has to read *X* and file. Filing reveals to the node that the reader it served wanted *X*. A coalition above G1's threshold can still kill a file and be slashed afterwards. The design sets δ below 2^-60, which has to be checked against YPIR's actual parameters (open obligation).
 
 **Limits**
 
-- **Reader privacy from nodes is limited.** Nodes learn who reads and which domains, and a coalition pooling logs can often infer which files and profiles a reader views. PIR still hides which post a reader viewed in isolation.
-- **Escalations go through a relayer.** A challenge names the record and is posted on-chain by the audit fund's relayer, so the chain doesn't learn who escalated; the refusing node already knows.
-- **Fallback reads leak more.** Fetching a block from the other holders of its stripe narrows the target to that stripe. Covered by G1 (enough honest holders answer) and G2b.
-- **Audits.** If auditors' addresses are recognizable, a node can tell audits from real reads. That doesn't help it skip storing data (the audit still targets an unknown record in the domain); refusing real readers instead is caught by G2b.
+- **Cost amplification.** A coalition that refuses every single-piece read multiplies honest load by (1 − α) + 32α: about 4x at 10%, 10x at 30%, 16x at 50%. It can aim this at one reader, one country or one author's readers. It cannot make anything unavailable below G1's threshold.
+- **Fallback leaks interest.** The holders a reader turns to for a rebuild see the reader's address and learn which stripe, and roughly which file, the reader wanted. PIR hides which post a reader viewed only while no fallback is needed.
+- **Reader privacy from nodes is limited.** Nodes learn who reads and which domains, and a coalition pooling logs can often infer which files and profiles a reader views.
+- **Storage proofs.** A node proves storage with a STARK over 2,500 beacon-sampled leaves per TB each day, due within 10 minutes, so there are no auditors to recognize; faking by rebuilding sampled leaves on demand would take about 1.6 million PIR queries in those 10 minutes for a 20 TB node. Colluding operators holding 32 or more slots of a stripe can store 32 symbols and compute the rest, saving about 17% of storage at 40% of stake and 33% at 50%; this is accepted (it does not reduce availability).
 
 ## Simulation results
 
@@ -186,6 +213,8 @@ These first runs used the earlier rules (distinct holders, three mixed blocks pe
 
 With concentrated stake the count is small because the largest operators hold several slots of many stripes; those few operators also hold a large share of all stake. The count measures how many parties a censor must coerce, so concentration matters here even though it does not change G1. Yearly reshuffles bound how long such leverage lasts, and 2 MB minimum files help most in large, even networks.
 
+These counts came from a greedy search over the old per-file code, so they are upper bounds on the cheapest coercion set, and the script that produced them is not yet in the project files. With 64 MB packs a censor must make more than 2,048 stripes fail at once, which needs coalition stake near two-thirds: about 663 operators of 1,000 with even stake, but only about 80 of 1,000 (or 370 of 10,000) with zipf-concentrated stake, because those operators already hold two-thirds of all stake. Stake concentration is an accepted risk.
+
 The simulation is approximate: correlated-outage runs used one random draw per setting, and concentrated-stake runs with random coalitions are noisy. The script and full output are kept with the project files.
 
 ## Open proof obligations
@@ -194,8 +223,13 @@ The simulation is approximate: correlated-outage runs used one random draw per s
 - [ ] **Beacon model.** Bound ε\_beacon for the chosen threshold beacon or VDF, including bias by withholding.
 - [ ] **Churn-aware G1.** Done: Theorem 1′ and its requirements are in G1 under churn. Remaining: a formal treatment of correlated outages whose timing the coalition can influence.
 - [ ] **Adaptive corruption.** Define a corruption-cost model over time and bound the cost of destroying one file, including yearly reshuffles.
-- [x] **A\_unlink.** Done Oct 19, 2026. The traffic model showed unlinkability fails for file and profile reads even over an anonymity layer, and Holoweave dropped the anonymity layer to stay simple. G2 no longer assumes unlinkability: record privacy (G2a) holds in any context, and loudness (G2b) covers selection by reader or pattern.
+- [x] **A\_unlink.** Done Oct 19, 2026. The traffic model showed unlinkability fails for file and profile reads even over an anonymity layer, and Holoweave dropped the anonymity layer to stay simple. G2 no longer assumes unlinkability: record privacy (G2a) holds in any context, and routing around refusals (G2b) covers selection by reader or pattern.
+- [ ] **Pack code.** Prove the pack bound with stripes shared across packs (a failed stripe hits 32 different packs, so stripe failures are independent within one pack but not across packs), and extend bad-encoding fraud proofs to the pack code.
+- [ ] **Identity randomness.** Show that activation-time beacon randomness and fixed per-identity stake leave the coalition's slot count Bin(*n*, α) on already-published seeds.
+- [ ] **DoS model.** Bound the cost of knocking specific holders offline, and the effect of the 3-day ejection grace window.
+- [ ] **Storage-proof soundness.** Bound the chance a node passes a day's proof while missing a share of its data, and the cost of faking it by rebuilding sampled leaves on demand (the design samples 2,500 leaves per TB per day, due within 10 minutes, so faking would need about 1.6 million PIR queries in that window for a 20 TB node). Benchmark the STARK prover.
 - [ ] **PIR instantiation.** Fix the scheme and parameters, and cite its query-privacy reduction to LWE with concrete security.
 - [ ] **Mixing randomizers.** Moot: mixing was dropped on Oct 19.
 - [ ] **Independent review.** Have a cryptographer check both games, the reductions and the numbers.
+- [ ] **Answer fraud proofs.** Fix YPIR parameters with decoding error δ ≤ 2^-60 and measure what they cost; specify the STARK that rebuilds a query from its seed and decrypts the answer, and benchmark it; make Theorem 4's reduction to Theorem 2 precise for strategies that depend on earlier answers.
 - [ ] **G3 and G4.** Write accountability and blind-ingest games in the same style.

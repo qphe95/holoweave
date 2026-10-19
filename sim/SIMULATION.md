@@ -65,7 +65,24 @@ Concentrated stake is the weak point: on a 1,000-node network with zipf-distribu
 
 Spread window needed for advantage ≤ 0.1 at α = 50%: profile 59 min, 1 MB file 98 min, 10 MB file 17 h on typical domains; 35 s, 59 s and 10 min on busy domains (r = 1/s). A Monte Carlo of the raw event streams (200,000 trials) gives 0.6157 against the exact 0.6159 for the 1 MB, 1-minute case.
 
-**Consequences for the design.** The model assumed each query was sent separately over an anonymity layer, and even then file and profile reads were recognizable. Holoweave then dropped the anonymity layer to stay simple, so nodes see who reads. G2 now rests on record privacy (PIR hides which record, in any context) and loudness (a 2-second service deadline, after which every refusal is escalated publicly and served from other holders), neither of which needs unlinkability. See Security games, G2.
+**Consequences for the design.** The model assumed each query was sent separately over an anonymity layer, and even then file and profile reads were recognizable. Holoweave then dropped the anonymity layer to stay simple, so nodes see who reads. G2 now rests on record privacy (PIR hides which record, in any context) and routing around refusals (a refused reader takes a spare piece or rebuilds the block from other holders, and the node isn't paid), neither of which needs unlinkability. Challenges were dropped the same day. See Security games, G2.
+
+## Packs (Oct 19, 2026)
+
+`group_code.py` (output in `group_results.txt`) models running the outer code over many files at once instead of over each file. With a per-file code (32 pieces, any 16 rebuild), a coalition kills one chosen file by failing 17 of its stripes, which is likely at about 58% of stake. In a 64 MB pack (2,048 data pieces plus 2,048 parity, any 2,048 rebuild) it must fail at least 2,049 of the pack's stripes at once, about 6 GB of stored symbols.
+
+| Unit | Largest stake keeping one chosen file below 10⁻¹⁸ | Below 10⁻⁹ | Stripes to kill |
+| --- | --- | --- | --- |
+| Per-file code, m = 32 (old) | 0.576 | 0.608 | 17 |
+| Per-file code, m = 64 | 0.604 | 0.626 | 33 |
+| **64 MB pack** | **0.663** | **0.666** | **2,049** |
+| 1 GB pack | 0.669 | 0.670 | 32,769 |
+
+A single stripe fails with probability 1/2 at 67.1% of stake, so packs bring the threshold for one chosen file almost to the point where a coalition can black out most of the network. 64 MB was chosen because going to 1 GB gains very little and makes rebuilding a file under attack 16 times more expensive (64 MB: 2,048 PIR queries, about 0.26 core-hours and 0.74 GB of upload).
+
+Under churn the gain is larger: a 50% coalition plus a simultaneous outage of 30% of honest stake gives about 2.7 × 10⁻⁷⁹ per pack (3.2 × 10⁻² per file before), and a 40% coalition plus permanent seizure of 20% of all stake is effectively zero (10⁻¹¹ before).
+
+What packs don't do: data pieces are stored as-is (systematic code), so a holder who knows a file's address can still delete its own pieces of that file. Below the threshold that only makes readers rebuild the piece from other holders. Packs also don't change how many *operators* that stake represents: with zipf-concentrated stake, the top 80 of 1,000 operators (or 370 of 10,000) already hold two-thirds. Those operator counts are heuristic upper bounds, as are the older coercion counts in "4. Adaptive coercion" below; the greedy-search script that produced them is not in this folder.
 
 ## Churn-aware G1 (Oct 19, 2026)
 
